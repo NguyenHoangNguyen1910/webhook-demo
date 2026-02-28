@@ -17,38 +17,50 @@ const classifyBurnout = (totalAvg) => {
 };
 
 app.post("/", (req, res) => {
-  const p = req.body.queryResult?.parameters || {};
-
-  app.post("/", (req, res) => {
-  const queryResult = req.body.queryResult;
+  const queryResult = req.body.queryResult || {};
   const contexts = queryResult.outputContexts || [];
-  
-  // Hàm phụ để tìm giá trị parameter trong tất cả contexts
+
+  // tìm parameter từ context hoặc trực tiếp
   const getParam = (name) => {
     for (let ctx of contexts) {
       if (ctx.parameters && ctx.parameters[name] !== undefined) {
         return toNumber(ctx.parameters[name]);
       }
     }
-    return toNumber(queryResult.parameters[name]); // Thử lấy trực tiếp nếu context không có
+    return toNumber(queryResult.parameters?.[name]);
   };
 
-  // Lấy dữ liệu an toàn từ Contexts
-  const q1 = getParam('q1');
-  const q2 = getParam('q2');
-  const q3 = getParam('q3');
-  const q4 = getParam('q4');
-  const q5 = getParam('q5');
-  const q6 = getParam('q6');
-  const q7 = getParam('q7');
-  const q8 = getParam('q8');
-  const q9 = getParam('q9');
+  // lấy dữ liệu
+  const q1 = getParam("q1");
+  const q2 = getParam("q2");
+  const q3 = getParam("q3");
+  const q4 = getParam("q4");
+  const q5 = getParam("q5");
+  const q6 = getParam("q6");
+  const q7 = getParam("q7");
+  const q8 = getParam("q8");
+  const q9 = getParam("q9");
 
-  // ... (Phần tính toán EE, CY, PE của bạn giữ nguyên vì đã đúng)
-  
-  // Trả kết quả
+  // ===== tính burnout =====
+  // EE: q1 q2 q3
+  const ee = (q1 + q2 + q3) / 3;
+
+  // CY: q4 q5 q6
+  const cy = (q4 + q5 + q6) / 3;
+
+  // PE (đảo điểm): q7 q8 q9
+  const pe = (
+    reverseScore(q7) +
+    reverseScore(q8) +
+    reverseScore(q9)
+  ) / 3;
+
+  // trung bình chung
+  const totalAvg = (ee + cy + pe) / 3;
+
   res.json({
-    fulfillmentText: `Kết quả Burnout của bạn:\n` +
+    fulfillmentText:
+      `Kết quả Burnout của bạn:\n` +
       `- Kiệt sức (EE): ${ee.toFixed(2)}/6\n` +
       `- Hoài nghi (CY): ${cy.toFixed(2)}/6\n` +
       `- Hiệu suất (PE-đảo): ${pe.toFixed(2)}/6\n` +
